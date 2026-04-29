@@ -1,19 +1,32 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import {
-  Users,
-  ChefHat,
-  Gift,
-  Cake,
-  UtensilsCrossed,
-  CheckCircle,
-} from "lucide-react";
+import emailjs from "@emailjs/browser";
+import { Users, Gift, Cake, CheckCircle, AlertCircle } from "lucide-react";
 
-function Input({ type = "text", placeholder }) {
-  return <input type={type} placeholder={placeholder} className="form-input" />;
+// ── Reusable controlled input styled like the dark form ──────────────────────
+function FormInput({
+  type = "text",
+  placeholder,
+  name,
+  value,
+  onChange,
+  required,
+}) {
+  return (
+    <input
+      type={type}
+      name={name}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      required={required}
+      className="w-full bg-transparent border-b border-gray-600 py-3 text-white placeholder-gray-500 outline-none focus:border-[#d4af37] transition-colors"
+    />
+  );
 }
 
 export default function BookUs() {
+  const formRef = useRef(null);
   const [activeTab, setActiveTab] = useState("kitty");
   const [formData, setFormData] = useState({
     name: "",
@@ -23,7 +36,51 @@ export default function BookUs() {
     persons: "2 Persons",
     date: "",
   });
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState("idle"); // idle | sending | success | error
+
+  const handleChange = (e) =>
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("sending");
+
+    // Bundle booking details into the message field so the
+    // single EmailJS template works for both Contact & BookUs
+    const messageValue = `TABLE BOOKING REQUEST
+──────────────────────
+Date:    ${formData.date || "Not specified"}
+Time:    ${formData.time}
+Persons: ${formData.persons}
+──────────────────────
+Sent from the Book Us page.`;
+
+    try {
+      await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          phone: formData.phone,
+          message: messageValue,
+        },
+        { publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY },
+      );
+      setStatus("success");
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        time: "08:00 pm",
+        persons: "2 Persons",
+        date: "",
+      });
+    } catch (err) {
+      console.error("EmailJS error:", err);
+      setStatus("error");
+    }
+  };
 
   const tabs = [
     {
@@ -46,7 +103,7 @@ export default function BookUs() {
               {[
                 "Reserved private seating (Indoor/Outdoor)",
                 "Customized menu & decoration options",
-                "Groups of 6-20 people",
+                "Groups of 6–20 people",
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5" />
@@ -133,12 +190,6 @@ export default function BookUs() {
     },
   ];
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
-  };
-
   return (
     <div className="max-w-7xl mx-auto py-40 px-4">
       <motion.div
@@ -156,16 +207,18 @@ export default function BookUs() {
         </p>
       </motion.div>
 
-      {/* Booking Form */}
+      {/* ── Booking Form ─────────────────────────────────────────── */}
       <section className="min-h-screen bg-[#070b12] flex items-center justify-center py-8 px-6 mb-6 rounded-3xl">
         <div className="max-w-6xl w-full grid md:grid-cols-2 gap-10 items-center">
+          {/* Left */}
           <div className="text-white">
             <h2 className="text-4xl md:text-5xl font-elegant leading-tight mb-10">
               BOOKING <br />
               <span className="text-[#d4af37]">A TABLE</span>
             </h2>
 
-            {submitted ? (
+            {/* Success */}
+            {status === "success" ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -178,50 +231,142 @@ export default function BookUs() {
                 <p className="text-gray-300 mt-2">
                   We'll confirm your reservation shortly via phone or email.
                 </p>
+                <button
+                  onClick={() => setStatus("idle")}
+                  className="mt-4 text-[#d4af37] hover:underline text-sm"
+                >
+                  Make another booking
+                </button>
               </motion.div>
             ) : (
-              <form className="space-y-6" onSubmit={handleSubmit}>
-                <Input placeholder="Name*" />
-                <Input placeholder="Email*" type="email" />
-                <Input placeholder="Phone Number*" />
+              <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+                {/* Hidden message field — populated by handleSubmit via emailjs.send() */}
+                {/* We use emailjs.send() not sendForm() so no hidden input needed */}
 
-                <select
-                  className="form-input"
-                  value={formData.time}
-                  onChange={(e) =>
-                    setFormData({ ...formData, time: e.target.value })
-                  }
-                >
-                  <option>08:00 pm</option>
-                  <option>09:00 pm</option>
-                  <option>10:00 pm</option>
-                </select>
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">
+                    Name *
+                  </label>
+                  <FormInput
+                    placeholder="Your name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-                <select
-                  className="form-input"
-                  value={formData.persons}
-                  onChange={(e) =>
-                    setFormData({ ...formData, persons: e.target.value })
-                  }
-                >
-                  <option>2 Persons</option>
-                  <option>4 Persons</option>
-                  <option>6 Persons</option>
-                  <option>8+ Persons</option>
-                </select>
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">
+                    Email *
+                  </label>
+                  <FormInput
+                    type="email"
+                    placeholder="your@email.com"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-                <Input type="date" />
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">
+                    Phone *
+                  </label>
+                  <FormInput
+                    placeholder="+91XXXXXXXXXX"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">
+                    Preferred Time
+                  </label>
+                  <select
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-gray-600 py-3 text-white outline-none focus:border-[#d4af37] transition-colors"
+                  >
+                    <option className="text-black" value="08:00 pm">
+                      08:00 pm
+                    </option>
+                    <option className="text-black" value="09:00 pm">
+                      09:00 pm
+                    </option>
+                    <option className="text-black" value="10:00 pm">
+                      10:00 pm
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">
+                    Number of Persons
+                  </label>
+                  <select
+                    name="persons"
+                    value={formData.persons}
+                    onChange={handleChange}
+                    className="w-full bg-transparent border-b border-gray-600 py-3 text-white outline-none focus:border-[#d4af37] transition-colors"
+                  >
+                    <option className="text-black" value="2 Persons">
+                      2 Persons
+                    </option>
+                    <option className="text-black" value="4 Persons">
+                      4 Persons
+                    </option>
+                    <option className="text-black" value="6 Persons">
+                      6 Persons
+                    </option>
+                    <option className="text-black" value="8+ Persons">
+                      8+ Persons
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 text-sm mb-2">
+                    Date *
+                  </label>
+                  <FormInput
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* Error */}
+                {status === "error" && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center gap-3 bg-red-500/10 border border-red-400/30 rounded-xl px-4 py-3 text-red-400 text-sm"
+                  >
+                    <AlertCircle size={16} />
+                    Something went wrong. Please call us or message on WhatsApp.
+                  </motion.div>
+                )}
 
                 <button
                   type="submit"
-                  className="w-full bg-[#e3b23c] text-black py-3 rounded-full font-semibold tracking-wide hover:bg-[#cfa12f] transition"
+                  disabled={status === "sending"}
+                  className="w-full bg-[#e3b23c] disabled:opacity-60 disabled:cursor-not-allowed text-black py-3 rounded-full font-semibold tracking-wide hover:bg-[#cfa12f] transition"
                 >
-                  Book Table
+                  {status === "sending" ? "Sending…" : "Book Table"}
                 </button>
               </form>
             )}
           </div>
 
+          {/* Right image */}
           <div className="hidden md:block">
             <img
               src="/lafb_sign.webp"
@@ -232,7 +377,7 @@ export default function BookUs() {
         </div>
       </section>
 
-      {/* Service Tabs */}
+      {/* ── Service Tabs ─────────────────────────────────────────── */}
       <div className="relative">
         <div className="flex flex-wrap justify-center gap-2 mb-8">
           {tabs.map((tab) => (

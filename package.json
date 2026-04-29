@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@fontsource/cormorant-garamond": "^5.2.11",
     "@fontsource/dancing-script": "^5.2.6",
     "@fontsource/pacifico": "^5.2.7",
