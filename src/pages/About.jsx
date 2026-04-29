@@ -267,35 +267,35 @@ function Chapter({ chapter, index }) {
 
 // ─── Why card ─────────────────────────────────────────────────────────────────
 
-// function WhyCard({ item, index }) {
-//   return (
-//     <motion.div
-//       initial={{ opacity: 0, y: 20 }}
-//       whileInView={{ opacity: 1, y: 0 }}
-//       viewport={{ once: true }}
-//       transition={{ duration: 0.45, delay: index * 0.07 }}
-//       className="group relative p-7 rounded-2xl bg-white border border-stone-100 hover:border-amber-300 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
-//     >
-//       {/* Hover fill */}
-//       <div className="absolute inset-0 bg-gradient-to-br from-amber-50 to-orange-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+function WhyCard({ item, index }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.45, delay: index * 0.07 }}
+      className="group relative p-7 rounded-2xl bg-white border border-stone-100 hover:border-amber-300 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+    >
+      {/* Hover fill */}
+      <div className="absolute inset-0 bg-gradient-to-br from-amber-50 to-orange-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
 
-//       <div className="relative z-10">
-//         <div className="flex items-start justify-between mb-5">
-//           <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center group-hover:bg-amber-200 transition-colors">
-//             {item.icon}
-//           </div>
-//           <span className="text-3xl font-elegant font-black text-stone-800 leading-none">
-//             {item.stat}
-//           </span>
-//         </div>
-//         <h4 className="font-bold text-stone-800 text-base mb-2">
-//           {item.label}
-//         </h4>
-//         <p className="text-stone-500 text-sm leading-relaxed">{item.body}</p>
-//       </div>
-//     </motion.div>
-//   );
-// }
+      <div className="relative z-10">
+        <div className="flex items-start justify-between mb-5">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center group-hover:bg-amber-200 transition-colors">
+            {item.icon}
+          </div>
+          <span className="text-3xl font-elegant font-black text-stone-800 leading-none">
+            {item.stat}
+          </span>
+        </div>
+        <h4 className="font-bold text-stone-800 text-base mb-2">
+          {item.label}
+        </h4>
+        <p className="text-stone-500 text-sm leading-relaxed">{item.body}</p>
+      </div>
+    </motion.div>
+  );
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
